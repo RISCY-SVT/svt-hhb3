@@ -58,24 +58,7 @@ HHB version: 3.0.3b0, build 20240512
 
 All work should be done inside **/data** – which is bind‑mounted to `./data` on the host.
 
-## 5. Typical Workflow
-
-1. **Export your model to ONNX** (if it isn’t already).  Example:
-
-   ```bash
-   python 01-export_to_onnx.py --checkpoint weights.pth --output depth_anything_v2_vits.onnx
-   ```
-2. **Convert to HHB** using the provided helper script:
-
-   ```bash
-   bash 03-convert_to_hhb.sh \
-        -m depth_anything_v2_vits.onnx \
-        -b th1520 \
-        --pixel-format BGR --quant int8_asym
-   ```
-3. Copy the generated `*.hhb` / compiled C code to the LicheePi 4A and build with CSI‑NN SDK or cross‑compiler.
-
-## 6. Environment Variables (Docker ARG/ENV)
+## 5. Environment Variables (Docker ARG/ENV)
 
 | Variable               | Default                                      | Purpose                                       |
 | ---------------------- | -------------------------------------------- | --------------------------------------------- |
@@ -84,29 +67,27 @@ All work should be done inside **/data** – which is bind‑mounted to `./data`
 | `TOOLROOT`             | /opt/riscv                                   | Install prefix of Xuantie GCC tool‑chain      |
 | `RISCV_CFLAGS`         | `-march=rv64gcv_zfh_xtheadc -mabi=lp64d -O3` | Sample flags                                  |
 
-## 7. Updating the Image
+## 6. Updating the Image
 
 If you change *Dockerfile* or wish to bump HHB, re‑run `./build-docker.sh`; it invalidates the build‑cache automatically.
 
-## 8. Troubleshooting
+## 7. Troubleshooting
 
 | Symptom                       | Fix / Cause                                                |
 | ----------------------------- | ---------------------------------------------------------- |
 | `ModuleNotFoundError: tvm`    | Ensure the build completed successfully – rebuild          |
 | `Permission denied` on /data  | Verify USER\_ID/GROUP\_ID in .env match your host user     |
-| Slow download from Aliyun     | Mirror the Xuantie GCC URL locally and adjust Dockerfile   |
-| HHB segfault inside container | Try a different HHB β tag; report upstream if reproducible |
 
-## 9. Security Notes
+## 8. Security Notes
 
 * The container runs as *your* UID, not root, mitigating host file‑permission issues.
 * `sudo` is pre‑installed **without password** *inside* the container; do **NOT** mount sensitive host paths unless required.
 
-## 10. License
+## 9. License
 
 All original files in this repository are released under the Apache 2.0 license.  Third‑party components retain their respective licenses – see their individual projects for details.
 
-## 11. Acknowledgements
+## 10. Acknowledgements
 
 * [T-Head / Xuantie CSI‑NN](https://github.com/THead-Semi/csi-nn2)
 * [HHB TVM fork](https://github.com/RISCY-SVT/tvm)
