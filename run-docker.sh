@@ -37,11 +37,11 @@ fi
 if [ "$(docker ps -q -f name=^/${CONTAINER_NAME}$)" ]; then
     echo "Container '${CONTAINER_NAME}' is already running."
 else
-    # Remove a stopped container with the same name
-    if [ "$(docker ps -aq -f name=^/${CONTAINER_NAME}$)" ]; then
-        echo "Removing stopped container '${CONTAINER_NAME}' …"
-        docker rm "${CONTAINER_NAME}"
-    fi
+    # # Remove a stopped container with the same name
+    # if [ "$(docker ps -aq -f name=^/${CONTAINER_NAME}$)" ]; then
+    #     echo "Removing stopped container '${CONTAINER_NAME}' …"
+    #     docker rm "${CONTAINER_NAME}"
+    # fi
 
     echo "Starting container '${CONTAINER_NAME}' …"
     $COMPOSE up -d
@@ -51,4 +51,4 @@ fi
 # Connect to the running container                                            #
 ###############################################################################
 echo "Connecting to container '${CONTAINER_NAME}' …"
-$COMPOSE exec "${CONTAINER_NAME}" bash
+docker exec -ti "${CONTAINER_NAME}" /bin/bash

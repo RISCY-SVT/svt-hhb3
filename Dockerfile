@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7   # ensures we are using BuildKit
 FROM ubuntu:22.04
 
 # Accept arguments for UID and GID
@@ -10,6 +11,13 @@ ARG HHB_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Madrid
 
+# Don't install recommended or suggested packages
+RUN echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/00-docker
+# RUN echo 'APT::Get::Install-Suggests "0";' >> /etc/apt/apt.conf.d/00-docker
+# RUN echo 'APT::Get::Install-Recommends "0";' >> /etc/apt/apt.conf.d/00-docker
+# RUN echo 'APT::Install-Suggests "0";' >> /etc/apt/apt.conf.d/00-docker
+# RUN echo 'APT::Install-Recommends "0";' >> /etc/apt/apt.conf.d/00-docker
+
 # Installation of basic packages
 RUN apt update && apt install -y --no-install-recommends \
     aptitude \
@@ -18,23 +26,29 @@ RUN apt update && apt install -y --no-install-recommends \
     cmake \
     curl \
     git \
+    less \
     libedit-dev \
+    libjpeg-dev \
     libgl1 libglib2.0-0 libsm6 libxext6 \
     libncurses5-dev \
+    libtinfo5 \
     libxml2-dev \
     libz-dev \
     libzstd-dev \
     llvm-15 \
     locales \
+    lsb-release \
     mc \
     ninja-build \
     p7zip-full \
+    pkg-config \
     python3 \
     python3-dev \
     python3-pip \
     python3-setuptools \
     rsync \
     sudo \
+    tree \
     vim \
     wget \
     zlib1g-dev \
@@ -90,12 +104,30 @@ ENV TOOLROOT=/opt/riscv
 # ENV RISCV_CFLAGS="-march=rv64gcv0p7_zfh_xtheadc -mabi=lp64d -O3"
 ENV RISCV_CFLAGS="-march=rv64gcv_zfh_xtheadc -mabi=lp64d -O3"
 
-# Скачивание и установка RISC-V тулчейна Xuantie
+# Download and install RISC-V Xuantie toolchain
+# The toolchain is downloaded from the official Aliyun OSS repository.
+# The version can be changed to the latest one available at the time of building the image.
+# Available versions can be found at https://www.xrvm.cn/community/download?id=4433353576298909696
+# The following versions are available:
+    # GCC V3.1.0 -  https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1749714096626/Xuantie-900-gcc-linux-6.6.0-glibc-x86_64-V3.1.0-20250522.tar.gz
+    # MUSL V3.1.0 - https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1749713312767/Xuantie-900-gcc-linux-5.10.4-musl64-x86_64-V3.1.0-20250522.tar.gz
+    # GCC V3.0.2 -  https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1744884682896/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V3.0.2-20250410.tar.gz
+    # GCC V2.8.1 -  https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1705395627867/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.8.1-20240115.tar.gz
+    # GCC V2.8.0 -  https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1698113812618/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.8.0-20231018.tar.gz
+    # GCC V2.6.1 -  https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1695015316167/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.6.1-20220906.tar.gz
+    # LLVM V2.1.0 - https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1749717040975/Xuantie-900-llvm-elf-newlib-x86_64-V2.1.0-20250522.tar.gz
+    # LLVM V2.1.0 - https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1749717539068/Xuantie-900-llvm-linux-6.6.0-glibc-x86_64-V2.1.0-20250522.tar.gz
+    # LLVM V2.0.1 - https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1732891447157/Xuantie-900-llvm-linux-5.10.4-glibc-x86_64-V2.0.1-20241121.tar.gz
+#    tar -xzf Xuantie-900-llvm-linux-5.10.4-glibc-x86_64-V2.0.1-20241121.tar.gz -C /opt/riscv --strip-components=1 && \
+#    /opt/riscv/bin/llvm-objdump --version
+
+# Install RISC-V toolchain  
 RUN mkdir -p /tmp/toolchain && \
     cd /tmp/toolchain && \
-    wget -q https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1698113812618/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.8.0-20231018.tar.gz && \
+    wget -q https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1705395627867/Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.8.1-20240115.tar.gz && \
+    wget -q https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource//1732891447157/Xuantie-900-llvm-linux-5.10.4-glibc-x86_64-V2.0.1-20241121.tar.gz && \
     mkdir -p /opt/riscv && \
-    tar -xzf Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.8.0-20231018.tar.gz -C /opt/riscv --strip-components=1 && \
+    tar -xzf Xuantie-900-gcc-linux-5.10.4-glibc-x86_64-V2.8.1-20240115.tar.gz -C /opt/riscv --strip-components=1 && \
     rm -rf /tmp/toolchain && \
     /opt/riscv/bin/riscv64-unknown-linux-gnu-gcc --version
 
@@ -156,6 +188,9 @@ if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
 fi
 PATH="/opt/riscv/bin:$PATH"
 export PATH
+export CC=/opt/riscv/bin/riscv64-unknown-linux-gnu-gcc
+export CXX=/opt/riscv/bin/riscv64-unknown-linux-gnu-g++
+export CROSS_PREFIX=/opt/riscv/bin/riscv64-unknown-linux-gnu
 
 # ========================================
 path() {
