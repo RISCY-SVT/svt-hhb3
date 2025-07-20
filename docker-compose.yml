@@ -1,5 +1,5 @@
 services:
-  svt-hhb3-2.10.2:
+  svt-hhb3-310:
     image: custler/${CONTAINER_NAME}:latest
     build:
       context: .
@@ -9,7 +9,9 @@ services:
         - GROUP_ID=${GROUP_ID}
         - USER_NAME=${USER_NAME}
         - HHB_VERSION=${HHB_VERSION}
+        - SHL_PYTHON_VERSION=${SHL_PYTHON_VERSION}
     container_name: "${CONTAINER_NAME}"
+    restart: unless-stopped
     hostname: "${CONTAINER_NAME}"
     user: "${USER_ID}:${GROUP_ID}"
     volumes:
@@ -20,16 +22,14 @@ services:
       - TOOLROOT=/opt/riscv
     tty: true
     stdin_open: true
-
     networks:
       - private_net
-
 ###############################################################################
 # Networks                                                                    #
 ###############################################################################
 networks:
   # Private, internal-only bridge network isolated from other Compose stacks
   private_net:
-    name: "${CONTAINER_NAME:-hhb3}_net"  # Unique, readable name
+    name: "${CONTAINER_NAME:-hhb3}_net" # Unique, readable name
     driver: bridge
 #    internal: true        # Block traffic to/from outside of this network
